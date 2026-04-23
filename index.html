@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Grand Archive: Sovereign Final</title>
+    <title>Grand Archive: Sovereign Final Fix</title>
     <style>
         :root {
             --primary: #2c3e50; --accent: #c0392b; --bg-edit: #f4f7f6;
@@ -29,7 +29,7 @@
         .page-node { position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: var(--paper); border-radius: 0 15px 15px 0; box-shadow: 0 10px 50px rgba(0,0,0,0.5); display: none; padding: 50px; box-sizing: border-box; overflow-y: auto; border-left: 15px solid rgba(0,0,0,0.2); animation: flipIn 0.6s ease-out forwards; }
         .page-node.active { display: block; }
         @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
-        .nav-btn { position: absolute; bottom: 20px; background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 10px 20px; cursor: pointer; z-index: 100; border-radius: 5px; }
+        .nav-btn { position: absolute; bottom: 20px; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; padding: 10px 20px; cursor: pointer; z-index: 100; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -46,6 +46,7 @@
     <div class="sidebar">
         <button class="btn-action" style="background:#3498db" onclick="initNew()">＋ 新規英雄</button>
         <div id="charList" style="max-height:200px; overflow-y:auto; margin-bottom:10px;"></div>
+        
         <div class="deco-panel">
             <h4 style="margin:0 0 10px 0;">🎨 表紙のでこ</h4>
             背景: <input type="color" id="decoBg" value="#4a1c1c" onchange="saveDeco()">
@@ -54,25 +55,36 @@
                 <option value="📖">本</option><option value="⚔️">剣</option><option value="🐉">龍</option><option value="✨">星</option><option value="👑">王</option>
             </select>
         </div>
+
         <div class="deco-panel" style="background:#e8f4fd;">
-            <h4 style="margin:0 0 10px 0;">🔗 共有</h4>
-            <button onclick="exportData()">コード生成</button>
-            <textarea id="shareCode" style="height:50px; font-size:0.7rem; margin-top:5px;"></textarea>
-            <button onclick="importData()" style="background:#2ecc71; color:white; border:none; width:100%;">読込</button>
+            <h4 style="margin:0 0 10px 0;">🔗 共有（データコピペ）</h4>
+            <button onclick="exportData()" style="background:#3498db; color:white; border:none; padding:5px; width:100%; cursor:pointer;">コード生成</button>
+            <textarea id="shareCode" style="height:80px; font-size:0.6rem; margin-top:5px; word-break: break-all;" placeholder="ここにコードを貼って読込"></textarea>
+            <button onclick="importData()" style="background:#2ecc71; color:white; border:none; width:100%; padding:10px; margin-top:5px; cursor:pointer;">コードから読込</button>
+            <small style="color:#666; font-size:0.6rem;">※画像が多いとコードが数万文字になります。全文コピーしてください。</small>
         </div>
     </div>
 
     <div class="main-editor">
         <input type="hidden" id="editIdx" value="-1">
         <label>英雄の名</label><input type="text" id="inpName">
+        
         <label>肖像画（最大2枚）</label>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="image-slot"><button onclick="openPaintModal(0)">🖌 1枚目を描く</button><img id="prev0" class="preview-img"><input type="hidden" id="dataImg0"><textarea id="dataDesc0" rows="2" placeholder="1枚目の解説"></textarea></div>
             <div class="image-slot"><button onclick="openPaintModal(1)">🖌 2枚目を描く</button><img id="prev1" class="preview-img"><input type="hidden" id="dataImg1"><textarea id="dataDesc1" rows="2" placeholder="2枚目の解説"></textarea></div>
         </div>
-        <label>ステータス項目</label><div id="fieldContainer"></div><button onclick="newField()">＋ 項目追加</button>
-        <label style="margin-top:20px; display:block;">図鑑解説（要約・能力）</label><textarea id="inpDesc" rows="4" placeholder="図鑑に直接表示される解説文..."></textarea>
-        <label>英雄譚（深掘りする物語）</label><textarea id="inpMythos" rows="6" placeholder="右下のボタンから読める長い物語..."></textarea>
+
+        <label>ステータス項目</label>
+        <div id="fieldContainer"></div>
+        <button onclick="newField()">＋ 項目追加</button>
+
+        <label style="margin-top:20px; display:block;">図鑑解説（要約・能力）</label>
+        <textarea id="inpDesc" rows="4" placeholder="図鑑に直接表示される解説文..."></textarea>
+        
+        <label>英雄譚（深掘りする物語）</label>
+        <textarea id="inpMythos" rows="6" placeholder="英雄譚ボタンから読める物語..."></textarea>
+        
         <button class="btn-action" style="background:var(--accent); font-size:1.2rem; margin-top:20px;" onclick="save()">アーカイブを保存</button>
     </div>
 </div>
@@ -101,9 +113,9 @@
 </div>
 
 <script>
-    let chars = JSON.parse(localStorage.getItem('zukan_final_v12')) || [];
-    let archiveTitle = localStorage.getItem('title_v12') || "至高のアーカイブ";
-    let deco = JSON.parse(localStorage.getItem('deco_v12')) || {bg:'#4a1c1c', text:'#d4af37', emblem:'📖'};
+    let chars = JSON.parse(localStorage.getItem('zukan_v13_data')) || [];
+    let archiveTitle = localStorage.getItem('zukan_v13_title') || "至高のアーカイブ";
+    let deco = JSON.parse(localStorage.getItem('zukan_v13_deco')) || {bg:'#4a1c1c', text:'#d4af37', emblem:'📖'};
     let activeSlot = 0; let currentPageIdx = 0; let history = [];
     const canvas = document.getElementById('paintCanvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let drawing = false; let currentTool = 'brush';
@@ -138,10 +150,39 @@
         const data = { name, fields, desc: document.getElementById('inpDesc').value, mythos: document.getElementById('inpMythos').value, imgs: [{img:document.getElementById('dataImg0').value, desc:document.getElementById('dataDesc0').value}, {img:document.getElementById('dataImg1').value, desc:document.getElementById('dataDesc1').value}] };
         const idx = parseInt(document.getElementById('editIdx').value);
         if(idx===-1) chars.push(data); else chars[idx]=data;
-        localStorage.setItem('zukan_final_v12', JSON.stringify(chars)); renderList(); initNew(); alert("保存完了");
+        localStorage.setItem('zukan_v13_data', JSON.stringify(chars)); renderList(); initNew(); alert("保存しました。");
     }
+
+    function exportData() {
+        const full = { title: archiveTitle, chars, deco };
+        const json = JSON.stringify(full);
+        // Base64が壊れないようURIエンコードを挟む
+        const code = btoa(encodeURIComponent(json));
+        const area = document.getElementById('shareCode');
+        area.value = code;
+        area.select();
+        document.execCommand('copy');
+        alert("コードを生成し、クリップボードにコピーしました！");
+    }
+
+    function importData() {
+        const code = document.getElementById('shareCode').value.trim();
+        if(!code) return;
+        try {
+            const decoded = decodeURIComponent(atob(code));
+            const data = JSON.parse(decoded);
+            if(confirm("データを読み込みます。現在の図鑑は上書きされますがよろしいですか？")) {
+                chars = data.chars; archiveTitle = data.title; deco = data.deco;
+                localStorage.setItem('zukan_v13_data', JSON.stringify(chars));
+                localStorage.setItem('zukan_v13_title', archiveTitle);
+                localStorage.setItem('zukan_v13_deco', JSON.stringify(deco));
+                location.reload();
+            }
+        } catch(e) { alert("コードが正しくないか、データが壊れています。全文コピーできているか確認してください。"); }
+    }
+
     function renderList() { document.getElementById('charList').innerHTML = chars.map((c,i)=>`<div class="char-entry" onclick="edit(${i})"><span>${c.name}</span><span style="color:red;" onclick="event.stopPropagation(); deleteChar(${i})">✕</span></div>`).join(''); }
-    function deleteChar(i){ if(confirm("消去？")){ chars.splice(i,1); localStorage.setItem('zukan_final_v12', JSON.stringify(chars)); renderList(); } }
+    function deleteChar(i){ if(confirm("消去？")){ chars.splice(i,1); localStorage.setItem('zukan_v13_data', JSON.stringify(chars)); renderList(); } }
     function edit(i) {
         const c=chars[i]; document.getElementById('editIdx').value=i; document.getElementById('inpName').value=c.name; document.getElementById('inpDesc').value=c.desc||''; document.getElementById('inpMythos').value=c.mythos||'';
         document.getElementById('fieldContainer').innerHTML=''; (c.fields||[]).forEach(f=>newField(f.l, f.v));
@@ -149,26 +190,24 @@
     }
     function initNew() { document.getElementById('editIdx').value="-1"; document.getElementById('inpName').value=""; document.getElementById('inpDesc').value=""; document.getElementById('inpMythos').value=""; document.getElementById('fieldContainer').innerHTML=''; newField(); [0,1].forEach(s=>{ document.getElementById('dataImg'+s).value=""; document.getElementById('prev'+s).style.display='none'; document.getElementById('dataDesc'+s).value=""; }); }
     function newField(l='', v=''){ const d=document.createElement('div'); d.className='f-row'; d.style="display:flex; gap:5px; margin-bottom:5px;"; d.innerHTML=`<input type="text" class="f-l" value="${l}" placeholder="項目" style="flex:1; margin:0;"><input type="text" class="f-v" value="${v}" placeholder="内容" style="flex:2; margin:0;">`; document.getElementById('fieldContainer').appendChild(d); }
-    function saveDeco(){ deco={bg:document.getElementById('decoBg').value, text:document.getElementById('decoText').value, emblem:document.getElementById('decoEmblem').value}; localStorage.setItem('deco_v12', JSON.stringify(deco)); }
-    function exportData(){ const f={title:archiveTitle, chars, deco}; document.getElementById('shareCode').value=btoa(unescape(encodeURIComponent(JSON.stringify(f)))); alert("生成成功"); }
-    function importData(){ try { const d=JSON.parse(decodeURIComponent(escape(atob(document.getElementById('shareCode').value)))); archiveTitle=d.title; chars=d.chars; deco=d.deco; location.reload(); } catch(e){ alert("失敗"); } }
+    function saveDeco(){ deco={bg:document.getElementById('decoBg').value, text:document.getElementById('decoText').value, emblem:document.getElementById('decoEmblem').value}; localStorage.setItem('zukan_v13_deco', JSON.stringify(deco)); }
     function setMode(m){ document.getElementById('sectionEdit').style.display=m==='edit'?'grid':'none'; document.getElementById('sectionBook').style.display=m==='book'?'flex':'none'; document.body.style.background=m==='edit'?'var(--bg-edit)':'var(--bg-book)'; if(m==='book') buildBook(); }
     function buildBook(){
         const w=document.getElementById('bookWrapper');
         let h=`<div class="page-node cover-node active" id="p-0" style="background:${deco.bg}; color:${deco.text};"><div style="font-size:8rem;">${deco.emblem}</div><h1>${archiveTitle}</h1></div>`;
         chars.forEach((c,i)=>{
             h+=`<div class="page-node" id="p-${i+1}"><h2 style="text-align:center; border-bottom:2px solid var(--gold);">${c.name}</h2>
-            <div style="display:flex; gap:10px;">${c.imgs.map(m=>m.img?`<div style="flex:1;"><img src="${m.img}" style="width:100%; border:2px solid #333;"><p style="font-size:0.8rem;">${m.desc}</p></div>`:'').join('')}</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin:15px 0; font-size:0.9rem;">${(c.fields||[]).map(f=>`<div><b>${f.l}</b>: ${f.v}</div>`).join('')}</div>
-            <div style="background:rgba(0,0,0,0.03); padding:15px; border-radius:5px; margin-bottom:15px;">${c.desc||''}</div>
-            ${c.mythos ? `<button onclick="alert('【英雄譚】\\n\\n' + chars[${i}].mythos)" style="padding:10px; cursor:pointer; background:var(--gold); border:none; border-radius:5px;">📜 英雄譚を開く</button>` : ''}
+            <div style="display:flex; gap:10px; height:200px;">${c.imgs.map(m=>m.img?`<div style="flex:1; text-align:center;"><img src="${m.img}" style="max-height:150px; border:2px solid #333;"><p style="font-size:0.7rem;">${m.desc}</p></div>`:'').join('')}</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin:10px 0; font-size:0.8rem;">${(c.fields||[]).map(f=>`<div><b>${f.l}</b>: ${f.v}</div>`).join('')}</div>
+            <div style="background:rgba(0,0,0,0.03); padding:10px; border-radius:5px; margin-bottom:10px; font-size:0.9rem;">${c.desc||''}</div>
+            ${c.mythos ? `<button onclick="alert('【英雄譚】\\n\\n' + chars[${i}].mythos)" style="padding:10px; width:100%; cursor:pointer; background:var(--gold); border:none; border-radius:5px; font-weight:bold;">📜 英雄譚を開く</button>` : ''}
             </div>`;
         });
         w.innerHTML=h; currentPageIdx=0;
     }
     function nextPage(){ if(currentPageIdx<chars.length){ document.getElementById(`p-${currentPageIdx}`).classList.remove('active'); currentPageIdx++; document.getElementById(`p-${currentPageIdx}`).classList.add('active'); } }
     function prevPage(){ if(currentPageIdx>0){ document.getElementById(`p-${currentPageIdx}`).classList.remove('active'); currentPageIdx--; document.getElementById(`p-${currentPageIdx}`).classList.add('active'); } }
-    function changeTitlePrompt(){ const t=prompt("題名:", archiveTitle); if(t){ archiveTitle=t; localStorage.setItem('title_v12', t); document.getElementById('archiveTitleDisplay').innerText=t; } }
+    function changeTitlePrompt(){ const t=prompt("題名:", archiveTitle); if(t){ archiveTitle=t; localStorage.setItem('zukan_v13_title', t); document.getElementById('archiveTitleDisplay').innerText=t; } }
     function openPaintModal(s){ activeSlot=s; document.getElementById('paintModal').style.display='flex'; history=[]; initCanvas(); }
     function closePaintModal(){ document.getElementById('paintModal').style.display='none'; }
     function clearCanvas(){ ctx.fillStyle="white"; ctx.fillRect(0,0,600,600); saveHistory(); }
