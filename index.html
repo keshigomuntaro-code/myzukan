@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Grand Archive: Sovereign Hybrid</title>
+    <title>Grand Archive: sovereign Edition</title>
     <style>
         :root {
             --primary: #2c3e50; --accent: #c0392b; --bg-edit: #f4f7f6;
@@ -104,7 +104,7 @@
         </div>
         <label>項目</label><div id="fieldContainer"></div><button onclick="newField()" style="margin-bottom:10px;">＋ 項目追加</button>
         <label>図鑑解説</label><textarea id="inpDesc" rows="3"></textarea>
-        <label>英雄譚</label><textarea id="inpMythos" rows="4"></textarea>
+        <div id="mythosContainer"></div><button onclick="newMythos()">＋ 英雄騨追加</button>
         <button class="btn-action" style="background:var(--accent); font-size:1.2rem; padding:15px;" onclick="save()">保存</button>
     </div>
 </div>
@@ -132,9 +132,9 @@
 </div>
 
 <script>
-    let chars = JSON.parse(localStorage.getItem('zukan_v15_data')) || [];
-    let archiveTitle = localStorage.getItem('zukan_v15_title') || "至高のアーカイブ";
-    let deco = JSON.parse(localStorage.getItem('zukan_v15_deco')) || {bg:'#4a1c1c', text:'#d4af37', emblem:'📖'};
+    let chars = JSON.parse(localStorage.getItem('zukan_v16_data')) || [];
+    let archiveTitle = localStorage.getItem('zukan_v16_title') || "至高のアーカイブ";
+    let deco = JSON.parse(localStorage.getItem('zukan_v16_deco')) || {bg:#4a1c1c', text:'#d4af37', emblem:'📖'};
     let activeSlot = 0; let currentPageIdx = 0; let history = [];
     const canvas = document.getElementById('paintCanvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let drawing = false; let currentTool = 'brush';
@@ -185,10 +185,11 @@
     function save() {
         const name = document.getElementById('inpName').value; if(!name) return alert("名無しは保存できん");
         const fields = Array.from(document.querySelectorAll('.f-row')).map(r => ({l:r.querySelector('.f-l').value, v:r.querySelector('.f-v').value}));
-        const data = { name, fields, desc: document.getElementById('inpDesc').value, mythos: document.getElementById('inpMythos').value, imgs: [{img:document.getElementById('dataImg0').value, desc:document.getElementById('dataDesc0').value}, {img:document.getElementById('dataImg1').value, desc:document.getElementById('dataDesc1').value}] };
+        const mythos = Array.from(document.querySelectorAll('.m-row')).map(r => ({t:r.querySelector('.m-t').value, c:r.querySelector('.m-c').value}));
+        const data = { name, fields, desc: document.getElementById('inpDesc').value, mythos, imgs: [{img:document.getElementById('dataImg0').value, desc:document.getElementById('dataDesc0').value}, {img:document.getElementById('dataImg1').value, desc:document.getElementById('dataDesc1').value}] };
         const idx = parseInt(document.getElementById('editIdx').value);
         if(idx===-1) chars.push(data); else chars[idx]=data;
-        localStorage.setItem('zukan_v15_data', JSON.stringify(chars)); renderList(); initNew(); alert("保存成功");
+        localStorage.setItem('zukan_v16_data', JSON.stringify(chars)); renderList(); initNew(); alert("保存成功");
     }
 
     function exportData() {
@@ -205,15 +206,17 @@
     }
 
     function renderList() { document.getElementById('charList').innerHTML = chars.map((c,i)=>`<div class="char-entry" onclick="edit(${i})"><span>${c.name}</span><b style="color:red;cursor:pointer" onclick="event.stopPropagation();deleteChar(${i})">✕</b></div>`).join(''); }
-    function deleteChar(i){ if(confirm("消すぞ？")){ chars.splice(i,1); localStorage.setItem('zukan_v15_data', JSON.stringify(chars)); renderList(); } }
+    function deleteChar(i){ if(confirm("消すぞ？")){ chars.splice(i,1); localStorage.setItem('zukan_v16_data', JSON.stringify(chars)); renderList(); } }
     function edit(i) {
-        const c=chars[i]; document.getElementById('editIdx').value=i; document.getElementById('inpName').value=c.name; document.getElementById('inpDesc').value=c.desc; document.getElementById('inpMythos').value=c.mythos;
+        const c=chars[i]; document.getElementById('editIdx').value=i; document.getElementById('inpName').value=c.name; document.getElementById('inpDesc').value=c.desc;
         document.getElementById('fieldContainer').innerHTML=''; (c.fields||[]).forEach(f=>newField(f.l, f.v));
+        document.getElementById('mythosContainer').innerHTML=''; (c.mythos||[]).forEach(m=>newMythos(m.t, m.c));
         c.imgs.forEach((m,s)=>{ document.getElementById('dataImg'+s).value=m.img; document.getElementById('prev'+s).src=m.img; document.getElementById('prev'+s).style.display=m.img?'block':'none'; document.getElementById('label'+s).style.display=m.img?'none':'inline'; document.getElementById('dataDesc'+s).value=m.desc; });
     }
-    function initNew() { document.getElementById('editIdx').value="-1"; document.getElementById('inpName').value=""; document.getElementById('inpDesc').value=""; document.getElementById('inpMythos').value=""; document.getElementById('fieldContainer').innerHTML=''; newField(); [0,1].forEach(s=>{ document.getElementById('dataImg'+s).value=""; document.getElementById('prev'+s).style.display='none'; document.getElementById('label'+s).style.display='inline'; document.getElementById('dataDesc'+s).value=""; }); }
+    function initNew() { document.getElementById('editIdx').value="-1"; document.getElementById('inpName').value=""; document.getElementById('inpDesc').value=""; document.getElementById('fieldContainer').innerHTML=''; newField(); document.getElementById('mythosContainer').innerHTML=''; newMythos(); [0,1].forEach(s=>{ document.getElementById('dataImg'+s).value=""; document.getElementById('prev'+s).style.display='none'; document.getElementById('label'+s).style.display='inline'; document.getElementById('dataDesc'+s).value=""; }); }
     function newField(l='', v=''){ const d=document.createElement('div'); d.className='f-row'; d.style="display:flex; gap:5px; margin-bottom:5px;"; d.innerHTML=`<input type="text" class="f-l" value="${l}" placeholder="項目" style="flex:1; margin:0;"><input type="text" class="f-v" value="${v}" placeholder="内容" style="flex:2; margin:0;">`; document.getElementById('fieldContainer').appendChild(d); }
-    function saveDeco(){ deco={bg:document.getElementById('decoBg').value, text:document.getElementById('decoText').value, emblem:document.getElementById('decoEmblem').value}; localStorage.setItem('zukan_v15_deco', JSON.stringify(deco)); }
+    function newMythos(t='', c=''){ const d=document.createElement('div'); d.className='m-row'; d.style="margin-bottom:10px;"; d.innerHTML=`<input type="text" class="m-t" value="${t}" placeholder="英雄騨題名" style="margin-bottom:5px;"><textarea class="m-c" rows="4" placeholder="英雄騨内容">${c}</textarea>`; document.getElementById('mythosContainer').appendChild(d); }
+    function saveDeco(){ deco={bg:document.getElementById('decoBg').value, text:document.getElementById('decoText').value, emblem:document.getElementById('decoEmblem').value}; localStorage.setItem('zukan_v16_deco', JSON.stringify(deco)); }
     function setMode(m){ document.getElementById('sectionEdit').style.display=m==='edit'?'flex':'none'; document.getElementById('sectionBook').style.display=m==='book'?'flex':'none'; if(m==='book') buildBook(); }
     function buildBook(){
         const w=document.getElementById('bookWrapper');
@@ -223,13 +226,13 @@
             <div style="display:flex; gap:10px; margin-bottom:15px;">${c.imgs.map(m=>m.img?`<div style="flex:1;text-align:center;"><img src="${m.img}" style="max-width:100%; border:1px solid #333;"><p style="font-size:0.7rem;">${m.desc}</p></div>`:'').join('')}</div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:0.8rem; margin-bottom:15px;">${(c.fields||[]).map(f=>`<div><b>${f.l}</b>:${f.v}</div>`).join('')}</div>
             <div style="background:rgba(0,0,0,0.05); padding:15px; border-radius:10px; font-size:0.9rem; margin-bottom:15px;">${c.desc||''}</div>
-            ${c.mythos ? `<button onclick="alert('${c.mythos.replace(/\n/g,'\\n')}')" class="btn-action" style="background:var(--gold); color:black;">📜 英雄譚を開く</button>` : ''}</div>`;
+            ${(c.mythos||[]).map((m,j)=>`<button onclick="alert('【${m.t}】\\n\\n' + chars[${i}].mythos[${j}].c)" class="btn-action" style="background:var(--gold); color:black;">📜 ${m.t}を開く</button>`).join('')}</div>`;
         });
         w.innerHTML=h; currentPageIdx=0;
     }
     function nextPage(){ if(currentPageIdx<chars.length){ document.getElementById(`p-${currentPageIdx}`).classList.remove('active'); currentPageIdx++; document.getElementById(`p-${currentPageIdx}`).classList.add('active'); } }
     function prevPage(){ if(currentPageIdx>0){ document.getElementById(`p-${currentPageIdx}`).classList.remove('active'); currentPageIdx--; document.getElementById(`p-${currentPageIdx}`).classList.add('active'); } }
-    function changeTitlePrompt(){ const t=prompt("題名:", archiveTitle); if(t){ archiveTitle=t; localStorage.setItem('zukan_v15_title', t); document.getElementById('archiveTitleDisplay').innerText=t; } }
+    function changeTitlePrompt(){ const t=prompt("題名:", archiveTitle); if(t){ archiveTitle=t; localStorage.setItem('title_v16', t); document.getElementById('archiveTitleDisplay').innerText=t; } }
     function openPaintModal(s){ activeSlot=s; document.getElementById('paintModal').style.display='flex'; history=[]; initCanvasEvents(); ctx.fillStyle="white"; ctx.fillRect(0,0,600,600); saveHistory(); }
     function closePaintModal(){ document.getElementById('paintModal').style.display='none'; }
     function clearCanvas(){ ctx.fillStyle="white"; ctx.fillRect(0,0,600,600); saveHistory(); }
